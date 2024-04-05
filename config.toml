@@ -1,0 +1,11 @@
+default_speed = 20
+
+[[rules]]
+window_title = "Minecraft"
+exe_name = "javaw.exe"
+speed = 4
+
+[[rules]]
+window_title = "Minecraft"
+exe_name = "java.exe"
+speed = 4
