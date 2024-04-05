@@ -12,7 +12,7 @@ serde = { version = "1.0.197", features = ["derive"] }
 toml = "0.8.12"
 
 [dependencies.windows]
-windows = "0.54.0"
+version = "0.54.0"
 features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
