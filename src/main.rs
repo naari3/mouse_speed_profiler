@@ -41,6 +41,9 @@ fn init_reconciler() -> Reconciler {
             error!("Creating config template...");
             create_config_template().expect("Failed to create config template");
             error!("Config template created at config.toml");
+            error!("Please edit the config file and restart the program");
+            error!("Press Enter key to exit...");
+            let _ = std::io::stdin().read_line(&mut String::new());
             std::process::exit(1);
         }
     };
