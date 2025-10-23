@@ -1,6 +1,7 @@
 use log::{debug, error, info, trace};
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
+use std::path::PathBuf;
 use windows::{
     core::*,
     Win32::{
@@ -11,6 +12,20 @@ use windows::{
 };
 
 static RECONCILER: OnceLock<Reconciler> = OnceLock::new();
+
+fn get_config_path() -> Result<PathBuf> {
+    let app_data = std::env::var("APPDATA").map_err(|_| Error::from_win32())?;
+    let mut path = PathBuf::from(app_data);
+    path.push("MouseSpeedProfiler");
+    
+    // Create directory if it doesn't exist
+    if !path.exists() {
+        std::fs::create_dir_all(&path).map_err(|_| Error::from_win32())?;
+    }
+    
+    path.push("config.toml");
+    Ok(path)
+}
 
 fn create_config_template() -> Result<()> {
     let config = Config {
@@ -31,18 +46,20 @@ fn create_config_template() -> Result<()> {
         default_speed: 10,
     };
     let config = toml::to_string_pretty(&config).expect("Failed to serialize config");
-    std::fs::write("config.toml", config).expect("Failed to write config file");
+    let config_path = get_config_path()?;
+    std::fs::write(&config_path, config).expect("Failed to write config file");
+    error!("Config template created at {}", config_path.display());
     Ok(())
 }
 
 fn init_reconciler() -> Reconciler {
-    let config = match std::fs::read_to_string("config.toml") {
+    let config_path = get_config_path().expect("Failed to get config path");
+    let config = match std::fs::read_to_string(&config_path) {
         Ok(c) => c,
         Err(e) => {
             error!("Failed to read config file: {}", e);
             error!("Creating config template...");
             create_config_template().expect("Failed to create config template");
-            error!("Config template created at config.toml");
             error!("Please edit the config file and restart the program");
             error!("Press Enter key to exit...");
             let _ = std::io::stdin().read_line(&mut String::new());
