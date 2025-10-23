@@ -19,18 +19,23 @@ MouseSpeedProfilerは、フォーカス中のアプリが切り替わったタ�
 [[rules]]
 window_title = "Minecraft"
 exe_name = "javaw.exe"
+match_all = true
 speed = 5
 
 [[rules]]
 window_title = "Minecraft"
 exe_name = "java.exe"
+match_all = true
 speed = 5
 
 default_speed = 10
 ```
 
-- **`window_title`**: アプリケーションウィンドウのタイトル
+- **`window_title`**: アプリケーションウィンドウのタイトル（オプション）
   - ウィンドウタイトルと前方一致したものを対象とします
 - **`exe_name`**: アプリケーションの実行ファイル名（オプション）
-  - もし指定された場合、タイトルが一致した上でアプリケーションの実行ファイル名と一致したものを対象とします
+  - 実行ファイルのパスと後方一致したものを対象とします
+- **`match_all`**: 両方の条件を満たす必要があるかどうか（オプション、デフォルト: true）
+  - `true`: `window_title`と`exe_name`の両方が一致する必要があります（両方が指定されている場合）
+  - `false`: `window_title`または`exe_name`のいずれかが一致すればよい
 - **`speed`**: アプリケーションの望ましいマウス速度（1-20）
