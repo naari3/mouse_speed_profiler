@@ -101,12 +101,12 @@ impl Reconciler {
             let matched_title = rule
                 .window_title
                 .as_ref()
-                .map_or(false, |t| title.starts_with(t));
+                .is_some_and(|t| title.starts_with(t));
 
             let matched_exe = rule
                 .exe_name
                 .as_ref()
-                .map_or(false, |e| exe_path.ends_with(e));
+                .is_some_and(|e| exe_path.ends_with(e));
 
             let matched = if rule.match_all {
                 matched_title && matched_exe
