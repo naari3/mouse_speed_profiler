@@ -1,4 +1,4 @@
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 use windows::{
@@ -16,13 +16,15 @@ fn create_config_template() -> Result<()> {
     let config = Config {
         rules: vec![
             Rule {
-                window_title: "Minecraft".to_string(),
+                window_title: Some("Minecraft".to_string()),
                 exe_name: Some("javaw.exe".to_string()),
+                match_all: true,
                 speed: 5,
             },
             Rule {
-                window_title: "Minecraft".to_string(),
+                window_title: Some("Minecraft".to_string()),
                 exe_name: Some("java.exe".to_string()),
+                match_all: true,
                 speed: 5,
             },
         ],
@@ -53,9 +55,15 @@ fn init_reconciler() -> Reconciler {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Rule {
-    window_title: String,
+    window_title: Option<String>,
     exe_name: Option<String>,
+    #[serde(default = "default_match_all")]
+    match_all: bool,
     speed: usize,
+}
+
+fn default_match_all() -> bool {
+    true
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -89,16 +97,32 @@ impl Reconciler {
 
     fn get_reconciled_speed(&self, title: &str, exe_path: &str) -> usize {
         for rule in &self.config.rules {
-            if title.starts_with(&rule.window_title) {
-                if let Some(exe_name) = &rule.exe_name {
-                    if exe_path.ends_with(exe_name) {
-                        return rule.speed;
-                    }
-                } else {
-                    return rule.speed;
-                }
+            trace!("Matching rule: {:?}", rule);
+            let matched_title = rule
+                .window_title
+                .as_ref()
+                .map_or(false, |t| title.starts_with(t));
+
+            let matched_exe = rule
+                .exe_name
+                .as_ref()
+                .map_or(false, |e| exe_path.ends_with(e));
+
+            let matched = if rule.match_all {
+                matched_title && matched_exe
+            } else {
+                matched_title || matched_exe
+            };
+
+            if matched {
+                trace!("Matched: {:?}", rule.speed);
+                return rule.speed;
             }
         }
+        trace!(
+            "No match, using default speed: {}",
+            self.config.default_speed
+        );
         self.config.default_speed
     }
 
